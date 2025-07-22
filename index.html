@@ -57,7 +57,8 @@
             text-align: center;
             will-change: opacity; /* Optimización para la animación de opacidad */
             opacity: 1;
-            transition: opacity 4s linear; /* Transición de desvanecimiento dura 4 segundos */
+            /* TIEMPO AJUSTADO: La transición ahora dura 5 segundos */
+            transition: opacity 5s linear; 
         }
 
         /* Clase para controlar el desvanecimiento de los relatos */
@@ -118,113 +119,93 @@
         /**
          * Inicializa el motor de audio. Requiere una interacción del usuario (clic).
          */
-       function inicializarAudio() {
-    if (audioIniciado) return;
-    
-    Tone.start().then(() => {
-        // Reverb más suave y etérea
-        const reverb = new Tone.Reverb({
-            decay: 6,
-            wet: 0.4,
-            preDelay: 0.2
-        }).toDestination();
+        function inicializarAudio() {
+            if (audioIniciado) return;
+            
+            Tone.start().then(() => {
+                const reverb = new Tone.Reverb({
+                    decay: 6,
+                    wet: 0.4,
+                    preDelay: 0.2
+                }).toDestination();
 
-        // Chorus más sutil
-        const chorus = new Tone.Chorus({
-            frequency: 1,
-            delayTime: 4,
-            depth: 0.3,
-            wet: 0.3
-        }).connect(reverb);
+                const chorus = new Tone.Chorus({
+                    frequency: 1,
+                    delayTime: 4,
+                    depth: 0.3,
+                    wet: 0.3
+                }).connect(reverb);
 
-        // Filtro más pronunciado
-        const filter = new Tone.Filter({
-            type: "lowpass",
-            frequency: 800,  // Más bajo para menos agudos
-            rolloff: -24,
-            Q: 0.5
-        }).connect(chorus);
+                const filter = new Tone.Filter({
+                    type: "lowpass",
+                    frequency: 800,
+                    rolloff: -24,
+                    Q: 0.5
+                }).connect(chorus);
 
-        // Control de volumen para respiración
-        volControl = new Tone.Volume(-10).connect(filter);
+                volControl = new Tone.Volume(-10).connect(filter);
 
-        // Sintetizador mejorado
-        synth = new Tone.PolySynth(Tone.Synth, {
-            oscillator: {
-                type: "fatsine",  // Onda especial más suave
-                count: 3,
-                spread: 30
-            },
-            envelope: {
-                attack: 0.8,
-                decay: 1.5,
-                sustain: 0.2,
-                release: 3
-            },
-            volume: -15
-        }).connect(volControl);
-        
-        // Vibrato más sutil
-        synth.set({
-            vibratoAmount: 0.1,
-            vibratoRate: 0.3
-        });
-        
-        // Iniciamos el efecto de "respiración"
-        simularRespiracion();
-        
-        audioIniciado = true;
-        startMessage.style.opacity = 0;
-        document.body.removeEventListener('click', inicializarAudio);
-    });
-}
+                synth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: {
+                        type: "fatsine",
+                        count: 3,
+                        spread: 30
+                    },
+                    envelope: {
+                        attack: 0.8,
+                        decay: 1.5,
+                        sustain: 0.2,
+                        release: 3
+                    },
+                    volume: -15
+                }).connect(volControl);
+                
+                synth.set({
+                    vibratoAmount: 0.1,
+                    vibratoRate: 0.3
+                });
+                
+                simularRespiracion();
+                
+                audioIniciado = true;
+                startMessage.style.opacity = 0;
+                document.body.removeEventListener('click', inicializarAudio);
+            });
+        }
 
         /**
          * Simula un efecto de respiración con el volumen
          */
         function simularRespiracion() {
-    if (!audioIniciado) return;
-    
-    // Respiración más lenta y sutil
-    volControl.volume.rampTo(-8, 3);
-    setTimeout(() => {
-        volControl.volume.rampTo(-14, 3);
-        setTimeout(simularRespiracion, 3000);
-    }, 3000);
-}
+            if (!audioIniciado) return;
+            
+            volControl.volume.rampTo(-8, 3);
+            setTimeout(() => {
+                volControl.volume.rampTo(-14, 3);
+                setTimeout(simularRespiracion, 3000);
+            }, 3000);
+        }
 
         /**
          * Reproduce una melodía de arrullo basada en el índice del texto
          */
         function reproducirArrullo(index) {
-    if (!audioIniciado) return;
-    
-    // Escala pentatónica mayor (más alegre que la menor)
-    const escala = ["G3", "A3", "B3", "D4", "E4", "G4"];
-    
-    // Seleccionamos notas basadas en el índice
-    const notaPrincipal = escala[index % escala.length];
-    const notaSecundaria = escala[(index + 2) % escala.length];
-    const notaBaja = escala[Math.max(0, (index - 2) % escala.length)];
-    
-    // Tocamos con ritmo de balanceo
-    const now = Tone.now();
-    synth.triggerAttackRelease(notaBaja, "2n", now, 0.2);
-    synth.triggerAttackRelease(notaPrincipal, "4n", now + 0.5, 0.2);
-    synth.triggerAttackRelease(notaSecundaria, "8n", now + 1, 0.2);
-    synth.triggerAttackRelease(notaPrincipal, "8n", now + 1.5, 0.2);
-}
+            if (!audioIniciado) return;
+            
+            const escala = ["G3", "A3", "B3", "D4", "E4", "G4"];
+            
+            const notaPrincipal = escala[index % escala.length];
+            const notaSecundaria = escala[(index + 2) % escala.length];
+            const notaBaja = escala[Math.max(0, (index - 2) % escala.length)];
+            
+            const now = Tone.now();
+            synth.triggerAttackRelease(notaBaja, "2n", now, 0.2);
+            synth.triggerAttackRelease(notaPrincipal, "4n", now + 0.5, 0.2);
+            synth.triggerAttackRelease(notaSecundaria, "8n", now + 1, 0.2);
+            synth.triggerAttackRelease(notaPrincipal, "8n", now + 1.5, 0.2);
+        }
 
-        // Añade un listener para que el primer clic en cualquier lugar inicie el audio.
-        // Reemplaza el event listener de clic por esto:
-document.body.addEventListener('click', inicializarAudio);
-
-// Pero añade esto para iniciar automáticamente después de 5 segundos
-setTimeout(() => {
-    if (!audioIniciado) {
-        inicializarAudio();
-    }
-}, 5000);
+        document.body.addEventListener('click', inicializarAudio);
 
         // Frases y relatos
         const FRASE_INICIAL = "Me quedé cuidándote, incluso cuando ya te habías ido";
@@ -244,13 +225,13 @@ setTimeout(() => {
             "Te acompañé en línea toda la noche. Te quedaste sin bus a casa, esperaste en una conserjería hasta el amanecer. Nos quedamos hablando hasta las 6 am."
         ];
 
-        // Tiempos (en milisegundos)
-        const DURACION_FRASE_INICIAL = 5000;
-        const DURACION_FASE_RELATOS = 180000;
-        const TIEMPO_RELATO_ESTATICO = 3000;
-        const DURACION_DESVANECIMIENTO_RELATO = 4000;
-        const INTERVALO_NUEVO_RELATO = 3500;
-        const DURACION_FRASE_FINAL = 5000;
+        // --- TIEMPOS AJUSTADOS (en milisegundos) ---
+        const DURACION_FRASE_INICIAL = 7000; // Antes 5000
+        const DURACION_FASE_RELATOS = 180000; // Se mantiene en 3 minutos
+        const TIEMPO_RELATO_ESTATICO = 8000; // Antes 3000 (tiempo visible antes de desvanecer)
+        const DURACION_DESVANECIMIENTO_RELATO = 5000; // Antes 4000 (tiempo de la animación de fade-out)
+        const INTERVALO_NUEVO_RELATO = 7000; // Antes 3500 (tiempo entre un relato y el siguiente)
+        const DURACION_FRASE_FINAL = 7000; // Antes 5000
         const DURACION_PANTALLA_BLANCA = 3000;
 
         let intervaloRelatos;
@@ -261,7 +242,7 @@ setTimeout(() => {
             return new Promise(resolve => {
                 textDisplay.textContent = texto;
                 textDisplay.style.opacity = 1;
-                reproducirArrullo(index); // Reproducimos arrullo basado en el índice
+                reproducirArrullo(index);
 
                 setTimeout(() => {
                     textDisplay.style.opacity = 0;
@@ -281,7 +262,7 @@ setTimeout(() => {
             el.style.transform = 'translate(-50%, -50%)';
 
             container.appendChild(el);
-            reproducirArrullo(relatoIndex); // Reproducimos arrullo basado en el índice
+            reproducirArrullo(relatoIndex);
 
             setTimeout(() => {
                 el.classList.add('fading-out');
@@ -320,8 +301,6 @@ setTimeout(() => {
         }
 
         window.addEventListener('load', () => {
-             // El ciclo no comienza hasta que el audio esté listo para ser activado.
-             // Se inicia visualmente, y el sonido se une tras el clic.
              iniciarCiclo();
         });
     </script>
